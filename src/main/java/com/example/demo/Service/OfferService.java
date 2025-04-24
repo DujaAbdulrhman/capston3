@@ -107,27 +107,33 @@ public class OfferService {
     }
 //--------------------------------------------------------------
     //Duja
-    public Offer submitOffer(Integer propertyId, Integer investorId, Integer price) {
-        Investor investor = investorRepository.findById(investorId).orElseThrow(() -> new ApiException("Investor not found"));
-        Property property = propertyRepository.findById(propertyId).orElseThrow(() -> new ApiException("Property not found"));
+   public Offer submitOffer(Integer propertyId, Integer investorId, Integer price) {
+    Investor investor = investorRepository.findById(investorId)
+            .orElseThrow(() -> new ApiException("Investor not found"));
 
-        Offer lastOffer = offerRepository.findTopByInvestorIdOrderByLastOfferTimeDesc(investorId);
-        if (lastOffer != null) {
-            long minutesDiff = ChronoUnit.MINUTES.between(lastOffer.getLastOfferTime(), LocalDateTime.now());
-            if (minutesDiff < 1) {
-                throw new RuntimeException("You cannot submit more than one offer per minute.");
-            }
-        }
+    Property property = propertyRepository.findById(propertyId)
+            .orElseThrow(() -> new ApiException("Property not found"));
 
-        Offer newOffer = new Offer();
-        newOffer.setProposedCost(price);
-        newOffer.setProperty(property);
-        newOffer.setInvestor(investor);
-        newOffer.setLastOfferTime(LocalDateTime.now());
-
-        return offerRepository.save(newOffer);
+    if (!property.isAcceptingOffers()) {
+        throw new ApiException("This property is not accepting offers at the moment.");
     }
 
+    Offer lastOffer = offerRepository.findTopByInvestorIdOrderByLastOfferTimeDesc(investorId);
+    if (lastOffer != null) {
+        long minutesDiff = ChronoUnit.MINUTES.between(lastOffer.getLastOfferTime(), LocalDateTime.now());
+        if (minutesDiff < 1) {
+            throw new ApiException("You cannot submit more than one offer per minute.");
+        }
+    }
+
+    Offer newOffer = new Offer();
+    newOffer.setProposedCost(price);
+    newOffer.setProperty(property);
+    newOffer.setInvestor(investor);
+    newOffer.setLastOfferTime(LocalDateTime.now());
+
+    return offerRepository.save(newOffer);
+}
 }
 
 
