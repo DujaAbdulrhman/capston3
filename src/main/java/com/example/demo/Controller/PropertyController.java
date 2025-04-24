@@ -55,56 +55,44 @@ public class PropertyController {
     //5
     @GetMapping("/calculate-price/{propertyId}")
     public ResponseEntity<Double> calculatePrice(@PathVariable Integer propertyId) {
-        // استدعاء دالة الخدمة لحساب السعر
         double price = propertyService.calculatePropertyPrice(propertyId);
-
-
         return ResponseEntity.status(200).body(price);
     }
 
     //4 Duja مجموع ربحه السنوي
     @GetMapping("/owner/{ownerId}/total-annual-profit")
-    public String getTotalAnnualProfit(@PathVariable Integer ownerId) {
-        Owner owner = new Owner();
-        owner.setId(ownerId);
-
-        return propertyService.calculateTotalAnnualProfitFromAllProperties(owner);
+    public ResponseEntity<String> getTotalAnnualProfit(@PathVariable Integer ownerId) {
+        String result = propertyService.calculateTotalAnnualProfitFromAllProperties(ownerId);
+        return ResponseEntity.ok(result);
     }
 
     //3 Duja تعرض العقارات الي بتنتهي خلال فتره (هو يدخل الرقم)
-    @GetMapping("/ending/{proposedYears}") //بيرجع العقارات الي بينتهي عقدها خلال سنه
-    public ResponseEntity endingSoon(@PathVariable int proposedYears) {
-        int proposedDays = proposedYears * 365;
-        List<Property> properties = propertyService.endingSoon(proposedDays);
-
+    @GetMapping("/ending/{proposedYears}")
+    public ResponseEntity<?> endingSoon(@PathVariable int proposedYears) {
+        List<Property> properties = propertyService.endingSoon(proposedYears);
         if (properties.isEmpty()) {
-            return ResponseEntity.status(400).body("there is nothing end by this period");
+            return ResponseEntity.status(400).body("There is nothing ending by this period");
         }
-        return ResponseEntity.status(200).body(properties);
+        return ResponseEntity.ok(properties);
     }
 
 
     //عشان يوقف استقبال العروض2 Duja
     @PutMapping("/property/{propertyId}/stop-receiving-offers")
-    public ResponseEntity stopReceivingOffers(@PathVariable Integer propertyId) {
+    public ResponseEntity<String> stopReceivingOffers(@PathVariable Integer propertyId) {
         boolean isStopped = propertyService.stopReceivingOffers(propertyId);
         if (isStopped) {
-            return ResponseEntity.status(200).body("Property is no longer accepting offers.");
+            return ResponseEntity.ok("Property is no longer accepting offers.");
         } else {
-            throw new ApiException("property not found");
+            throw new ApiException("Property not found");
         }
     }
+    
     //1 duja تحسب متوسط السعر لكل العروض
-    @GetMapping("/property/{propertyId}/average-offer-price")
+     @GetMapping("/property/{propertyId}/average-offer-price")
     public ResponseEntity<Double> getAverageOfferPrice(@PathVariable Integer propertyId) {
-
-        Property property = propertyService.getPropertyById(propertyId);
-        if (property == null) {
-            throw new ApiException("property not exist");
-        }
         double averagePrice = propertyService.calculateAverageOfferPrice(propertyId);
-
-        return ResponseEntity.status(200).body(averagePrice);
+        return ResponseEntity.ok(averagePrice);
     }
 
 
