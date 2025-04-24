@@ -90,11 +90,11 @@ public class PropertyService {
 
     //4 Duja
     public boolean stopReceivingOffers(Integer propertyId) {
-        Optional<Property> property = Optional.ofNullable(propertyRepository.findPropertiesById(propertyId));
-        if (property.isPresent()) {
-            Property prop = property.get();
-            prop.setAcceptingOffers(false);
-            propertyRepository.save(prop);
+        Optional<Property> optionalProperty = propertyRepository.findById(propertyId);
+        if (optionalProperty.isPresent()) {
+            Property property = optionalProperty.get();
+            property.setAcceptingOffers(false);
+            propertyRepository.save(property);
             return true;
         }
         return false;
@@ -124,26 +124,32 @@ public class PropertyService {
     }
 
     public Property findById(Integer propertyId) {
-        return propertyRepository.findById(propertyId).orElse(null);  // إذا لم يوجد العقار، يتم إرجاع null
+        return propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException("Property not found"));
     }
+
 
 
     //Duja
     public double calculatePropertyPrice(Integer propertyId) {
         Property property = findById(propertyId);
         if (property == null) {
-            throw new IllegalArgumentException("Property not found");
+            throw new ApiException("Property not found");
         }
-
         // تحديد السعر لكل متر مربع (1975 ريال)
         double pricePerMeter = 1975.0;
 
-        double area = property.getAreaSize();
+        Double area = property.getAreaSize();
+
+        if (area == null || area <= 0) {
+            throw new ApiException("Invalid area size");
+        }
 
         double totalPrice = area * pricePerMeter;
 
         return totalPrice;
     }
+
 
 
     //6 بيحسب  متوسط العروض الي جته Duja
@@ -155,17 +161,25 @@ public class PropertyService {
         }
 
         double totalPrice = 0;
+        int validOffersCount = 0;
+
         for (Offer offer : offers) {
-            totalPrice += offer.getProposedCost();
+            Double cost = Double.valueOf(offer.getProposedCost());
+            if (cost != null) {
+                totalPrice += cost;
+                validOffersCount++;
+            }
         }
-        return totalPrice / offers.size();
+
+        return validOffersCount == 0 ? 0 : totalPrice / validOffersCount;
     }
+
+
     //حقت واحد حسبه متوسسط السعر لكل العروض Duja
     public Property getPropertyById(Integer propertyId) {
         Optional<Property> property = propertyRepository.findById(propertyId);
         return property.orElse(null);
     }
-
 
 }
 
