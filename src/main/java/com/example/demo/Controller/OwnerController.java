@@ -43,10 +43,10 @@ public class OwnerController {
 
 
     //6  تحسب معدل قبول المالك Duja
-    @GetMapping("/{ownerId}/offer-acceptance-rate")
-    public ResponseEntity getOfferAcceptanceRate(@PathVariable Integer ownerId) {
-        double rate = ownerService.calculateOfferAcceptanceRate(ownerId);
-        return ResponseEntity.status(200).body("Owner's bid acceptance rate: "+rate);
+   @GetMapping("/{ownerId}/offer-acceptance-rate")
+    public ResponseEntity<String> getOfferAcceptanceRate(@PathVariable Integer ownerId) {
+        String result = ownerService.calculateOfferAcceptanceRate(ownerId);
+        return ResponseEntity.ok(result);
     }
 
 
