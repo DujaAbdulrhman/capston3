@@ -90,15 +90,13 @@ public class PropertyService {
 
     //4 Duja
     public boolean stopReceivingOffers(Integer propertyId) {
-        Optional<Property> optionalProperty = propertyRepository.findById(propertyId);
-        if (optionalProperty.isPresent()) {
-            Property property = optionalProperty.get();
+        return propertyRepository.findById(propertyId).map(property -> {
             property.setAcceptingOffers(false);
             propertyRepository.save(property);
             return true;
-        }
-        return false;
+        }).orElse(false);
     }
+    
 
     public void rejectTheProperty(Integer propertyId,Integer adminId){
         Admin admin = adminRepository.findAdminById(adminId);
@@ -117,7 +115,8 @@ public class PropertyService {
     }
 
     //Duja
-    public List<Property> endingSoon(int proposedDays) {
+    public List<Property> endingSoon(int proposedYears) {
+        int proposedDays = proposedYears * 365;
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusDays(proposedDays);
         return propertyRepository.findPropertiesByLeaseEndDateBetween(today, endDate);
@@ -132,28 +131,25 @@ public class PropertyService {
 
     //Duja
     public double calculatePropertyPrice(Integer propertyId) {
-        Property property = findById(propertyId);
-        if (property == null) {
-            throw new ApiException("Property not found");
-        }
-        // تحديد السعر لكل متر مربع (1975 ريال)
-        double pricePerMeter = 1975.0;
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException("Property not found"));
 
+        double pricePerMeter = 1975.0;
         Double area = property.getAreaSize();
 
         if (area == null || area <= 0) {
             throw new ApiException("Invalid area size");
         }
-
-        double totalPrice = area * pricePerMeter;
-
-        return totalPrice;
+        return area * pricePerMeter;
     }
 
 
 
     //6 بيحسب  متوسط العروض الي جته Duja
-    public double calculateAverageOfferPrice(Integer propertyId) {
+   public double calculateAverageOfferPrice(Integer propertyId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException("Property not found"));
+
         List<Offer> offers = offerRepository.findByPropertyId(propertyId);
 
         if (offers.isEmpty()) {
@@ -176,7 +172,7 @@ public class PropertyService {
 
 
     //حقت واحد حسبه متوسسط السعر لكل العروض Duja
-    public Property getPropertyById(Integer propertyId) {
+     public Property getPropertyById(Integer propertyId) {
         Optional<Property> property = propertyRepository.findById(propertyId);
         return property.orElse(null);
     }
