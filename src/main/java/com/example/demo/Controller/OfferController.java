@@ -67,12 +67,11 @@ public class OfferController {
 //------------------------------------------
 
     //7 Duja مانخلي التاجر يسوي سبميت لاكثر من اوفر بنفس الدقيقه
-    @PostMapping("/submit")
-    public ResponseEntity submitOffer(@RequestParam Integer propertyId, @RequestParam Integer investorId, @RequestParam Integer price) {
+    @PostMapping("/submit/{propertyId}/{investorId}/{price}")
+    public ResponseEntity<Offer> submitOffer(@PathVariable Integer propertyId, @PathVariable Integer investorId, @PathVariable Integer price) {
 
-            Offer newOffer = offerService.submitOffer(propertyId, investorId, price);
-            return ResponseEntity.status(200).body(newOffer);
-
+        Offer newOffer = offerService.submitOffer(propertyId, investorId, price);
+        return ResponseEntity.ok(newOffer);
     }
 
 
